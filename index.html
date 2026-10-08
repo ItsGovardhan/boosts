@@ -1,0 +1,945 @@
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--
+    Content-Security-Policy as a meta tag so the browser enforces it on THIS
+    document no matter who serves it (the Express app or Vercel's static CDN).
+    script-src 'self' with no 'unsafe-inline' means an injected inline handler
+    or <script> — e.g. a `<img onerror=alert(...)>` smuggled in via some
+    stored value — simply cannot execute. This backs up the server header in
+    server.js; either one alone is enough, together they can't be bypassed.
+  -->
+  
+  <title>Dragon</title>
+  <link rel="icon" type="image/jpeg" href="logo.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- ===================== PUBLIC VIEW (no login) ===================== -->
+  <div id="public-view" class="public-view">
+    <header class="header">
+      <a class="logo" href="#"><img src="logo.jpg" class="logo-img" alt="Dragon Boosts"><span class="logo-word"><span class="logo-dragon">Dragon</span> <span class="logo-boosts">Boosts</span></span></a>
+      <div class="header-right">
+        <button class="btn btn-ghost btn-icon-only" id="account-btn" title="Account" aria-label="Account">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </button>
+        <button class="btn btn-ghost" id="show-login-btn">Booster</button>
+      </div>
+    </header>
+
+    <main class="main boost-main">
+      <div class="brand-title">
+        <span class="brand-top">DragonBoost</span>
+        <span class="brand-bottom" id="brand-sub">Key Redeem Panel</span>
+      </div>
+
+      <!-- Feature chips (under the heading) -->
+      <div class="chips" id="feature-chips">
+        <span class="chip chip-neutral">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          Secure Process
+        </span>
+        <span class="chip chip-green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          Instant Activation
+        </span>
+        <span class="chip chip-purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9l-4.8 1.9L12 15.7 10.1 10.9 5.3 9l4.8-1.9L12 3z"></path></svg>
+          Premium Access
+        </span>
+      </div>
+
+      <div class="booster">
+        <!-- Server details (both modes) -->
+        <div class="sec-card">
+          <div class="sec-head">
+            <span class="sec-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></span>
+            <div>
+              <div class="sec-title">SERVER DETAILS</div>
+              <div class="sec-sub">Enter the invite link to the server you want to boost</div>
+            </div>
+          </div>
+          <div class="field-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg> Invite Link</div>
+          <input type="text" id="redeem-invite" class="sec-input" placeholder="discord.gg/invite-code">
+          <div class="field-help">Instant discord invite lookup</div>
+          <div class="invite-preview hidden" id="pv-invite-preview">
+            <img class="ip-icon" id="pv-ip-icon" alt="">
+            <div class="ip-info">
+              <div class="ip-name" id="pv-ip-name">—</div>
+              <div class="ip-id" id="pv-ip-id"></div>
+            </div>
+            <div class="ip-stats">
+              <span class="ip-stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><b id="pv-ip-members">—</b></span>
+              <span class="ip-stat online"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="14"></line><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line></svg><b id="pv-ip-online">—</b></span>
+              <span class="ip-stat boosts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path></svg><b id="pv-ip-boosts">—</b></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- STOCK mode: redeem key -->
+        <div class="sec-card" id="pm-stock">
+          <div class="sec-head">
+            <span class="sec-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.6 7.6a5.5 5.5 0 1 1-7.8 7.8 5.5 5.5 0 0 1 7.8-7.8zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3"></path></svg></span>
+            <div>
+              <div class="sec-title">REDEEM KEY</div>
+              <div class="sec-sub">Your key covers the boosts you receive</div>
+            </div>
+          </div>
+          <div class="field-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.6 7.6a5.5 5.5 0 1 1-7.8 7.8 5.5 5.5 0 0 1 7.8-7.8zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3"></path></svg> Key</div>
+          <input type="text" id="redeem-key" class="sec-input key-field" maxlength="19" placeholder="XXXXXXXXXXXXXXXX">
+          <div class="field-help">The key covers your boosts · 16 characters</div>
+        </div>
+
+        <!-- STOCK mode: humanize the stock tokens (free) -->
+        <div id="hz-mount-stock"></div>
+
+        <!-- BYOT mode: your tokens + quantity -->
+        <div class="hidden byot-group" id="pm-byot">
+          <div class="sec-card">
+            <div class="sec-head sec-head-split">
+              <div class="sec-head-left">
+                <span class="sec-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.6 7.6a5.5 5.5 0 1 1-7.8 7.8 5.5 5.5 0 0 1 7.8-7.8zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3"></path></svg></span>
+                <div>
+                  <div class="sec-title">YOUR TOKENS</div>
+                  <div class="sec-sub">One token per line · supports multiple formats</div>
+                </div>
+              </div>
+              <button type="button" class="buy-pill" id="p-wand" title="Paste tokens from clipboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect><path d="M9 12l2 2 4-4"></path></svg>
+                Paste from clipboard
+              </button>
+            </div>
+            <textarea id="p-tokens" class="sec-input token-area" placeholder="TOKEN
+email:pass:TOKEN
+email:pass:TOKEN:2FA"></textarea>
+            <div class="tokens-foot">
+              <span class="token-counter" id="p-token-counter">0 tokens loaded</span>
+              <span>One token per line · Max 100 tokens</span>
+            </div>
+          </div>
+
+          <div class="sec-card">
+            <div class="sec-head">
+              <span class="sec-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg></span>
+              <div>
+                <div class="sec-title">SETTINGS</div>
+                <div class="sec-sub">Configure boost quantity</div>
+              </div>
+            </div>
+            <div class="field-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg> Quantity</div>
+            <input type="number" id="p-boosts" class="sec-input" value="0" min="0" max="40">
+            <div class="field-help">0 = use all tokens</div>
+          </div>
+        </div>
+
+        <!-- Action -->
+        <button type="button" class="start-btn" id="p-start">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg>
+          <span id="p-start-label">Redeem Now</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </button>
+        <div class="hint center solve-note hidden" id="solve-note">$0.015 each solve</div>
+        <div class="form-message" id="redeem-message"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ===================== LOGIN VIEW (BYOT) ===================== -->
+  <div id="login-view" class="auth-view hidden">
+    <div class="auth-card">
+      <a class="auth-logo" href="#"><img src="logo.jpg" class="auth-logo-img" alt="Dragon Boosts"><span class="logo-word"><span class="logo-dragon">Dragon</span> <span class="logo-boosts">Boosts</span></span></a>
+      <p class="auth-sub">Login to start boosting</p>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-auth-tab="login">Login</button>
+        <button class="auth-tab" data-auth-tab="register">Register</button>
+      </div>
+
+      <form id="auth-form" class="auth-form">
+        <label>Username
+          <input type="text" id="auth-username" autocomplete="username" required="">
+        </label>
+        <label>Password
+          <input type="password" id="auth-password" autocomplete="current-password" required="">
+        </label>
+        <button type="submit" class="btn btn-primary btn-block" id="auth-submit">Login</button>
+      </form>
+      <div id="auth-error" class="form-error"></div>
+      <button class="btn btn-ghost btn-block back-btn" id="back-public-btn">Back to key redeem</button>
+    </div>
+  </div>
+
+  <!-- ============ REDEEM RESULT VIEW (after a key redeem) ============ -->
+  <div id="redeem-result-view" class="auth-view hidden">
+    <div class="result-card">
+      <a class="auth-logo" href="#"><img src="logo.jpg" class="auth-logo-img" alt="Dragon Boosts"><span class="logo-word"><span class="logo-dragon">Dragon</span> <span class="logo-boosts">Boosts</span></span></a>
+
+      <!-- Circular boost status — hidden once the key is fully redeemed -->
+      <div id="rr-status-section">
+        <div class="rr-ring-wrap running" id="rr-ring-wrap">
+          <svg class="rr-ring" viewBox="0 0 120 120">
+            <circle class="rr-ring-track" cx="60" cy="60" r="52"></circle>
+            <circle class="rr-ring-bar" id="rr-ring-bar" cx="60" cy="60" r="52"></circle>
+          </svg>
+          <div class="rr-ring-center">
+            <svg class="rr-ring-icon hidden" id="rr-icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
+            <svg class="rr-ring-icon hidden" id="rr-icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            <span class="rr-ring-count" id="rr-ring-count">0/0</span>
+          </div>
+        </div>
+        <div class="rr-status-text">
+          <div class="rr-status-title" id="rr-state">Running boosts…</div>
+          <div class="rr-status-sub"><strong id="rr-delivered">0</strong> / <span id="rr-requested">0</span> boosts delivered</div>
+        </div>
+      </div>
+      <div class="rr-support-note hidden" id="rr-support-note">
+        Not all boosts could be delivered — please open a support ticket below.
+      </div>
+
+      <!-- Which server -->
+      <div class="rr-section">
+        <div class="rr-label">Boosting server</div>
+        <div class="invite-preview" id="rr-server">
+          <img class="ip-icon" id="rr-ip-icon" alt="">
+          <div class="ip-info">
+            <div class="ip-name" id="rr-ip-name">—</div>
+            <div class="ip-id" id="rr-ip-id"></div>
+          </div>
+          <div class="ip-stats">
+            <span class="ip-stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><b id="rr-ip-members">—</b></span>
+            <span class="ip-stat online"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="14"></line><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line></svg><b id="rr-ip-online">—</b></span>
+            <span class="ip-stat boosts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path></svg><b id="rr-ip-boosts">—</b></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Key information -->
+      <div class="rr-section">
+        <div class="rr-label">Key information</div>
+        <div class="rr-info-grid">
+          <div class="rr-info"><span>Key</span><strong id="rr-key" class="mono">—</strong></div>
+          <div class="rr-info"><span>Boosts</span><strong id="rr-boosts">0/0</strong></div>
+          <div class="rr-info"><span>Tokens used</span><strong id="rr-tokens">—</strong></div>
+          <div class="rr-info" id="rr-hz-info" hidden=""><span>Profiles set</span><strong id="rr-humanized">0</strong></div>
+        </div>
+      </div>
+
+      <a class="btn btn-primary btn-block btn-icon" id="rr-support" href="#" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+        <span id="rr-support-label">Join Support Server</span>
+      </a>
+      <button class="btn btn-ghost btn-block back-btn" id="rr-back">Redeem another key</button>
+    </div>
+  </div>
+
+  <!-- ===================== APP VIEW (logged in, BYOT) ===================== -->
+  <div id="app-view" class="app-view hidden">
+    <header class="header">
+      <a class="logo" href="#"><img src="logo.jpg" class="logo-img" alt="Dragon Boosts"><span class="logo-word"><span class="logo-dragon">Dragon</span> <span class="logo-boosts">Boosts</span></span></a>
+    </header>
+
+    <main class="main">
+      <!-- Account bar -->
+      <div class="account-bar">
+        <div class="account-info">
+          <span class="ai-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <b id="ab-username">—</b>
+          </span>
+          <span class="ai-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"></rect><path d="M3 10h18"></path><path d="M16 14h2"></path></svg>
+            <b id="ab-balance">$0.00</b>
+          </span>
+        </div>
+        <div class="account-actions">
+          <button type="button" class="acc-btn acc-boost active" data-tab="boost">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg>
+            Boost
+          </button>
+          <button type="button" class="acc-btn acc-deposit" data-tab="deposit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"></ellipse><path d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6"></path><path d="M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"></path></svg>
+            Deposit
+          </button>
+          <button type="button" class="acc-btn acc-history" data-tab="history">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>
+            History
+          </button>
+          <button type="button" class="acc-btn acc-profile" data-tab="profile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M6 21v-1a4 4 0 0 1 4-4h1"></path><circle cx="18" cy="17" r="3"></circle><path d="M18 14v1M18 19v1M21 17h-1M16 17h-1"></path></svg>
+            Profile
+          </button>
+          <button type="button" class="acc-btn acc-stock" data-tab="stock">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"></path><path d="M1 3h22v5H1z"></path><path d="M10 12h4"></path></svg>
+            My Stock
+          </button>
+          <button type="button" class="acc-btn acc-twofa" data-tab="twofa">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            2FA Tools
+          </button>
+          <button type="button" class="acc-btn acc-admin admin-only hidden" data-tab="admin">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            Admin
+          </button>
+          <button type="button" class="acc-btn acc-logout" id="logout-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <!-- ===================== BOOST TAB (BYOT) ===================== -->
+      <section class="tab-panel active" id="tab-boost">
+        <div class="booster">
+          <!-- Server details -->
+          <div class="sec-card">
+            <div class="sec-head">
+              <span class="sec-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></span>
+              <div>
+                <div class="sec-title">SERVER DETAILS</div>
+                <div class="sec-sub">Enter the invite link to the server you want to boost</div>
+              </div>
+            </div>
+            <div class="field-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg> Invite Link</div>
+            <input type="text" id="invite" class="sec-input" placeholder="discord.gg/invite-code">
+            <div class="field-help">Instant discord invite lookup</div>
+            <div class="invite-preview hidden" id="invite-preview">
+              <img class="ip-icon" id="ip-icon" alt="">
+              <div class="ip-info">
+                <div class="ip-name" id="ip-name">—</div>
+                <div class="ip-id" id="ip-id"></div>
+              </div>
+              <div class="ip-stats">
+                <span class="ip-stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><b id="ip-members">—</b></span>
+                <span class="ip-stat online"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="14"></line><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line></svg><b id="ip-online">—</b></span>
+                <span class="ip-stat boosts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path></svg><b id="ip-boosts">—</b></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Settings -->
+          <div class="sec-card">
+            <div class="sec-head">
+              <span class="sec-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg></span>
+              <div>
+                <div class="sec-title">SETTINGS</div>
+                <div class="sec-sub">Configure boost quantity and retries</div>
+              </div>
+            </div>
+            <div class="settings-grid">
+              <div>
+                <div class="field-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg> Quantity</div>
+                <input type="number" id="boosts" class="sec-input" min="0" max="40" value="0">
+                <div class="field-help" id="max-hint">0 = use all tokens</div>
+              </div>
+              <div>
+                <div class="field-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg> Retries</div>
+                <input type="number" id="retries" class="sec-input" min="0" max="10" value="3">
+                <div class="field-help">Per token retry</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Your tokens -->
+          <div class="sec-card">
+            <div class="sec-head sec-head-split">
+              <div class="sec-head-left">
+                <span class="sec-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.6 7.6a5.5 5.5 0 1 1-7.8 7.8 5.5 5.5 0 0 1 7.8-7.8zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3"></path></svg></span>
+                <div>
+                  <div class="sec-title">YOUR TOKENS</div>
+                  <div class="sec-sub">One token per line · supports multiple formats</div>
+                </div>
+              </div>
+              <button type="button" class="buy-pill" id="b-wand" title="Paste tokens from clipboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect><path d="M9 12l2 2 4-4"></path></svg>
+                Paste from clipboard
+              </button>
+            </div>
+            <textarea id="tokens" class="sec-input token-area" placeholder="TOKEN
+email:pass:TOKEN
+email:pass:TOKEN:2FA"></textarea>
+            <div class="tokens-foot">
+              <span class="token-counter" id="token-counter">0 tokens loaded</span>
+              <span>One token per line · Max 100 tokens · Supports multiple formats</span>
+            </div>
+          </div>
+
+          <!-- Humanize the tokens' profiles before boosting -->
+          <div id="hz-mount-byot"></div>
+
+          <!-- Hidden cost preview (kept for live quoting) -->
+          <div class="quote-box hidden" id="quote-box">
+            <div class="quote-row"><span>Estimated Max Cost:</span><strong id="quote-max">$0.00</strong></div>
+            <div class="quote-row"><span>Tokens to use:</span><strong id="quote-tokens">0</strong></div>
+            <div class="quote-row"><span>Captcha cost:</span><strong id="quote-captcha">$0.00</strong></div>
+          </div>
+
+          <!-- Live cost vs. wallet balance -->
+          <div class="cost-note" id="cost-note">
+            <div class="cost-main">
+              <div class="cost-copy">
+                <div class="cost-eyebrow">You pay up to</div>
+                <div class="cost-headline">Only for joins that hit a captcha</div>
+              </div>
+              <div class="cost-price"><span id="cost-amount">0.00</span> USD</div>
+            </div>
+            <div class="cost-foot">
+              <svg class="cost-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>
+              <span>You're only charged when a join actually triggers a captcha that has to be solved — no captcha, no charge.</span>
+              <span class="cost-balance-wrap">Balance <strong id="cost-balance">$0.00</strong></span>
+            </div>
+          </div>
+
+          <!-- Action -->
+          <button class="start-btn" id="start-btn" disabled="">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg>
+            Start Boosting
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+          <div class="form-error" id="boost-error"></div>
+
+          <div class="status-box hidden" id="status-box">
+            <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+            <div class="status-line">
+              <span class="status-state" id="status-state">Running...</span>
+              <span class="status-detail" id="status-detail">0 / 0 boosts delivered</span>
+            </div>
+            <div class="status-meta">
+              <span id="status-tokens">0 tokens used</span>
+              <span id="status-humanized" hidden="">0 humanized</span>
+              <span id="status-elapsed">Elapsed: 0s</span>
+              <span id="status-cost">Cost: $0.00</span>
+            </div>
+          </div>
+
+          <!-- Per-token live status -->
+          <div class="sec-card token-status hidden" id="token-status">
+            <div class="ts-tabs">
+              <button type="button" class="ts-tab active" data-tstab="all">All <span id="ts-all-count">0</span></button>
+              <button type="button" class="ts-tab" data-tstab="joined">Joined <span id="ts-joined-count">0</span></button>
+              <button type="button" class="ts-tab" data-tstab="failed">Failed <span id="ts-failed-count">0</span></button>
+            </div>
+            <div class="ts-rows" id="ts-rows"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== DEPOSIT TAB ===================== -->
+      <section class="tab-panel" id="tab-deposit">
+        <h1 class="title">Deposit</h1>
+        <p class="subtitle">Top up your wallet with Litecoin</p>
+
+        <div class="card card-narrow">
+          <div class="wallet-balance">
+            <span>Wallet balance</span>
+            <strong id="wallet-balance">$0.00</strong>
+          </div>
+
+          <div class="field">
+            <label for="topup-amount">Amount to top up (USD)</label>
+            <div class="input-prefix">
+              <span>$</span>
+              <input type="number" id="topup-amount" min="0" step="1" placeholder="10.00">
+            </div>
+            <div class="hint" id="topup-preview">≈ — LTC</div>
+            <div class="hint" id="topup-min"></div>
+          </div>
+          <button class="btn btn-primary btn-block" id="topup-btn">Generate deposit address</button>
+          <div class="form-message" id="topup-message"></div>
+
+          <!-- Deposit instructions -->
+          <div class="deposit-box hidden" id="deposit-box">
+            <div class="deposit-amount">
+              Send exactly <strong id="deposit-ltc">—</strong>
+              <span class="deposit-usd" id="deposit-usd"></span>
+            </div>
+
+            <img class="qr" id="deposit-qr" alt="Payment QR code">
+
+            <label class="deposit-addr-label">Litecoin address</label>
+            <div class="address-row">
+              <code id="deposit-address"></code>
+              <button class="btn btn-ghost btn-mini" id="copy-address-btn">Copy</button>
+            </div>
+            <div class="deposit-status" id="deposit-status">Waiting for payment…</div>
+            <div class="hint">The page checks for your payment automatically. Keep it open.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== HISTORY TAB ===================== -->
+      <section class="tab-panel" id="tab-history">
+        <h1 class="title">History</h1>
+
+        <div class="card card-narrow">
+          <h2 class="card-title">Boost history</h2>
+          <div class="table-wrap">
+            <table class="table" id="boosts-table">
+              <thead>
+                <tr><th>Date</th><th>Server</th><th>Boosts</th><th>Status</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="hint" id="boosts-empty">No boosts yet.</div>
+        </div>
+
+        <div class="card card-narrow">
+          <h2 class="card-title">Deposit history</h2>
+          <div class="table-wrap">
+            <table class="table" id="deposits-table">
+              <thead>
+                <tr><th>Date</th><th>Amount</th><th>Status</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== PROFILE TAB ===================== -->
+      <section class="tab-panel" id="tab-profile">
+        <h1 class="title">Profile</h1>
+
+        <div class="card card-narrow">
+          <div class="profile-row"><span>Username</span><strong id="pf-username">—</strong></div>
+          <div class="profile-row"><span>Role</span><strong id="pf-role">—</strong></div>
+          <div class="profile-row"><span>Member since</span><strong id="pf-created">—</strong></div>
+          <div class="profile-row"><span>Wallet balance</span><strong id="pf-balance">$0.00</strong></div>
+        </div>
+      </section>
+
+      <!-- ===================== MY STOCK TAB ===================== -->
+      <section class="tab-panel" id="tab-stock">
+        <h1 class="title">My Stock</h1>
+        <p class="subtitle">Upload your own tokens, then generate keys backed by them. Your keys work on the main Key Redeem Panel — each redeem draws tokens from <b>your</b> stock and charges <b>your</b> wallet (per solved captcha, like BYOT).</p>
+
+        <div class="subtabs">
+          <button class="stock-subtab active" data-stab="keys">Keys</button>
+          <button class="stock-subtab" data-stab="tokens">Tokens</button>
+        </div>
+
+        <!-- Keys -->
+        <div class="stock-pane active" id="stock-pane-keys">
+          <div class="card">
+            <h2 class="card-title">Generate Keys</h2>
+            <p class="subtitle">Each key carries its own boost amount and is redeemed on the main panel. Tokens are pulled from your stock when the key is redeemed.</p>
+            <div class="settings-row">
+              <div class="field">
+                <label for="stock-gen-boosts">Boosts per Key</label>
+                <input type="number" id="stock-gen-boosts" min="1" value="5">
+              </div>
+              <div class="field">
+                <label for="stock-gen-count">Number of Keys</label>
+                <input type="number" id="stock-gen-count" min="1" max="500" value="5">
+              </div>
+            </div>
+            <button class="btn btn-primary" id="stock-generate-keys-btn">Generate Keys</button>
+            <div class="form-message" id="stock-gen-keys-message"></div>
+
+            <div class="gen-result hidden" id="stock-gen-result">
+              <div class="table-head">
+                <span class="hint" id="stock-gen-result-label">Newly generated keys (one per line)</span>
+                <button class="btn btn-ghost btn-mini" id="stock-copy-keys-btn">Copy all</button>
+              </div>
+              <textarea id="stock-gen-keys-output" class="token-input" readonly=""></textarea>
+            </div>
+          </div>
+          <div class="card">
+            <div class="table-head">
+              <h2 class="card-title">My Keys</h2>
+              <div class="head-actions">
+                <span class="badge" id="stock-keys-summary"></span>
+                <button class="btn btn-danger btn-mini" id="stock-delete-all-keys-btn">Delete all</button>
+              </div>
+            </div>
+            <div class="keys-grid" id="stock-keys-grid"></div>
+          </div>
+        </div>
+
+        <!-- Tokens -->
+        <div class="stock-pane" id="stock-pane-tokens">
+          <div class="card">
+            <h2 class="card-title">Upload Tokens</h2>
+            <p class="subtitle">Paste tokens (one per line). Accepts a bare token or
+              <code>email:pass:token</code> or <code>email:pass:token:2fa</code> — only the token part is stored. Your keys draw from this stock.</p>
+            <textarea id="stock-tokens" class="token-input" placeholder="TOKEN
+email:pass:TOKEN
+email:pass:TOKEN:2FA"></textarea>
+            <button class="btn btn-primary" id="stock-save-tokens-btn">Save Tokens</button>
+            <div class="form-message" id="stock-tokens-message"></div>
+          </div>
+          <div class="card">
+            <div class="table-head">
+              <h2 class="card-title">My Tokens</h2>
+              <div class="head-actions">
+                <span class="badge" id="stock-tokens-summary"></span>
+                <button class="btn btn-danger btn-mini" id="stock-delete-all-tokens-btn">Delete unused</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="table" id="stock-tokens-table">
+                <thead>
+                  <tr><th>Token</th><th>Status</th><th>Created</th><th></th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== 2FA TOOLS TAB ===================== -->
+      <section class="tab-panel" id="tab-twofa">
+        <h1 class="title">2FA Tools</h1>
+        <p class="subtitle">Add 2FA to your tokens, or recover a fresh token.</p>
+
+        <div class="card card-narrow">
+          <div class="tok-filters" id="twofa-mode">
+            <button type="button" class="tok-filter active" data-twofa="add">Add 2FA</button>
+            <button type="button" class="tok-filter" data-twofa="restore">Recover</button>
+          </div>
+
+          <div class="field">
+            <label for="twofa-input">Accounts (one per line)</label>
+            <textarea id="twofa-input" class="token-input" placeholder="password:token
+email:password:token
+email:password:token:2fa"></textarea>
+            <div class="hint" id="twofa-hint">Add 2FA: <code>password:token</code>, <code>email:password:token</code>, or <code>email:password:token:2fa</code> — the password confirms the change. Returns <code>password:NEWTOKEN:SECRET</code>.</div>
+          </div>
+
+          <!-- Live cost vs. wallet balance (only shown when a price is set) -->
+          <div class="cost-note hidden" id="twofa-cost-note">
+            <div class="cost-main">
+              <div class="cost-copy">
+                <div class="cost-eyebrow">You pay up to</div>
+                <div class="cost-headline" id="twofa-cost-headline">If every account succeeds</div>
+              </div>
+              <div class="cost-price"><span id="twofa-cost-amount">0.00</span> USD</div>
+            </div>
+            <div class="cost-foot">
+              <svg class="cost-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>
+              <span>You're only charged for accounts that actually succeed — failures cost nothing.</span>
+              <span class="cost-balance-wrap">Balance <strong id="twofa-cost-balance">$0.00</strong></span>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-block" id="twofa-run-btn">Run</button>
+          <div class="form-message" id="twofa-message"></div>
+
+          <div class="hidden" id="twofa-results-wrap">
+            <div class="table-head">
+              <h2 class="card-title">Results</h2>
+              <div class="head-actions">
+                <span class="badge" id="twofa-summary"></span>
+                <button class="btn btn-ghost btn-mini" id="twofa-copy-btn">Copy results</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="table" id="twofa-table">
+                <thead><tr><th>Result line</th><th>Status</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== ADMIN TAB ===================== -->
+      <section class="tab-panel" id="tab-admin">
+        <h1 class="title">Admin</h1>
+
+        <!-- Password gate -->
+        <div class="admin-lock centered" id="admin-lock">
+          <div class="card card-narrow lock-card">
+            <h2 class="card-title">Admin Access</h2>
+            <p class="subtitle">Enter the admin password to continue</p>
+            <div class="field">
+              <input type="password" id="admin-password" placeholder="Password">
+            </div>
+            <button class="btn btn-primary btn-block" id="admin-unlock-btn">Unlock</button>
+            <div class="form-message" id="admin-lock-message"></div>
+          </div>
+        </div>
+
+        <!-- Unlocked content -->
+        <div id="admin-content" class="hidden">
+          <div class="subtabs">
+            <button class="subtab active" data-subtab="keys">Keys</button>
+            <button class="subtab" data-subtab="tokens">Tokens</button>
+            <button class="subtab" data-subtab="users">Users</button>
+            <button class="subtab" data-subtab="pricing">Pricing</button>
+          </div>
+
+          <!-- Keys sub-tab -->
+          <div class="subpanel active" id="sub-keys">
+            <div class="card">
+              <h2 class="card-title">Generate Keys</h2>
+              <p class="subtitle">Each key carries its own boost amount. Generate in bulk below.</p>
+              <div class="settings-row">
+                <div class="field">
+                  <label for="gen-boosts">Boosts per Key</label>
+                  <input type="number" id="gen-boosts" min="1" value="5">
+                </div>
+                <div class="field">
+                  <label for="gen-count">Number of Keys</label>
+                  <input type="number" id="gen-count" min="1" max="500" value="10">
+                </div>
+              </div>
+              <button class="btn btn-primary" id="generate-keys-btn">Generate Keys</button>
+              <div class="form-message" id="gen-keys-message"></div>
+
+              <!-- Copyable list of the keys just generated -->
+              <div class="gen-result hidden" id="gen-result">
+                <div class="table-head">
+                  <span class="hint" id="gen-result-label">Newly generated keys (one per line)</span>
+                  <button class="btn btn-ghost btn-mini" id="copy-keys-btn">Copy all</button>
+                </div>
+                <textarea id="gen-keys-output" class="token-input" readonly=""></textarea>
+              </div>
+            </div>
+            <div class="card">
+              <div class="table-head">
+                <h2 class="card-title">All Keys</h2>
+                <div class="head-actions">
+                  <span class="badge" id="keys-summary"></span>
+                  <button class="btn btn-danger btn-mini" id="delete-all-keys-btn">Delete all</button>
+                </div>
+              </div>
+              <div class="keys-grid" id="keys-grid"></div>
+            </div>
+          </div>
+
+          <!-- Tokens sub-tab -->
+          <div class="subpanel" id="sub-tokens">
+            <div class="card">
+              <h2 class="card-title">Upload Tokens (Stock)</h2>
+              <p class="subtitle">Paste tokens (one per line). Accepts a bare token or
+                <code>email:pass:token</code> or <code>email:pass:token:2fa</code> — only the token part is stored, same as BYOT.
+                Redeemed keys draw from this pool.</p>
+              <textarea id="admin-tokens" class="token-input" placeholder="TOKEN
+email:pass:TOKEN
+email:pass:TOKEN:2FA"></textarea>
+              <button class="btn btn-primary" id="save-tokens-btn">Save Tokens</button>
+              <div class="form-message" id="admin-tokens-message"></div>
+            </div>
+            <div class="card">
+              <h2 class="card-title">Edit / Copy Unused Stock (bulk)</h2>
+              <p class="subtitle">Load the current unused pool as plain text, edit or copy it
+                freely, then save — lines you remove are deleted, lines you add are added,
+                everything else is left untouched. Used tokens aren't included here.</p>
+              <textarea id="admin-tokens-bulk" class="token-input" placeholder="Click &quot;Load current stock&quot; first…"></textarea>
+              <div class="btn-row">
+                <button class="btn btn-ghost" id="load-tokens-btn">Load current stock</button>
+                <button class="btn btn-ghost" id="copy-tokens-btn">Copy all</button>
+                <button class="btn btn-primary" id="save-tokens-bulk-btn">Save changes</button>
+              </div>
+              <div class="form-message" id="admin-tokens-bulk-message"></div>
+            </div>
+            <div class="card">
+              <div class="table-head">
+                <h2 class="card-title">Stock Tokens</h2>
+                <div class="head-actions">
+                  <span class="badge" id="tokens-summary"></span>
+                  <button class="btn btn-ghost btn-mini" id="recover-invalid-tokens-btn">Recover invalid</button>
+                  <button class="btn btn-ghost btn-mini" id="copy-invalid-tokens-btn">Copy invalid</button>
+                  <button class="btn btn-danger btn-mini" id="delete-all-tokens-btn">Delete all</button>
+                </div>
+              </div>
+              <div class="tok-filters" id="tok-filters">
+                <button type="button" class="tok-filter active" data-tokfilter="all">All <span id="tok-f-all">0</span></button>
+                <button type="button" class="tok-filter" data-tokfilter="unused">Unused <span id="tok-f-unused">0</span></button>
+                <button type="button" class="tok-filter" data-tokfilter="used">Used <span id="tok-f-used">0</span></button>
+                <button type="button" class="tok-filter" data-tokfilter="invalid">Invalid <span id="tok-f-invalid">0</span></button>
+              </div>
+              <div class="table-wrap">
+                <table class="table" id="tokens-table">
+                  <thead>
+                    <tr><th>Token</th><th>Status</th><th>Created</th><th></th></tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Users sub-tab -->
+          <div class="subpanel" id="sub-users">
+            <div class="card">
+              <div class="table-head">
+                <h2 class="card-title">Users</h2>
+                <span class="badge" id="users-summary"></span>
+              </div>
+              <p class="subtitle">Give (or remove) wallet balance for a BYOT account. Positive amounts add, negative amounts deduct.</p>
+              <div class="table-wrap">
+                <table class="table" id="users-table">
+                  <thead>
+                    <tr><th>Username</th><th>Role</th><th>Balance</th><th>Joined</th><th>Give balance</th></tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pricing sub-tab -->
+          <div class="subpanel" id="sub-pricing">
+            <div class="card">
+              <h2 class="card-title">Pricing</h2>
+              <p class="subtitle">BYOT charges — key redeems are unaffected (they humanize for free)</p>
+              <div class="settings-row">
+                <div class="field" style="max-width:280px">
+                  <label for="price-captcha">Solve Price (per captcha)</label>
+                  <div class="input-prefix">
+                    <span>$</span>
+                    <input type="number" id="price-captcha" min="0" step="0.001" value="0.015">
+                  </div>
+                </div>
+                <div class="field" style="max-width:280px">
+                  <label for="price-humanize">Humanize Price (per token)</label>
+                  <div class="input-prefix">
+                    <span>$</span>
+                    <input type="number" id="price-humanize" min="0" step="0.001" value="0.005">
+                  </div>
+                </div>
+                <div class="field" style="max-width:280px">
+                  <label for="price-twofa-add">2FA Add Price (per token)</label>
+                  <div class="input-prefix">
+                    <span>$</span>
+                    <input type="number" id="price-twofa-add" min="0" step="0.001" value="0">
+                  </div>
+                </div>
+                <div class="field" style="max-width:280px">
+                  <label for="price-twofa-recover">2FA Recover Price (per token)</label>
+                  <div class="input-prefix">
+                    <span>$</span>
+                    <input type="number" id="price-twofa-recover" min="0" step="0.001" value="0">
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn-primary" id="save-pricing-btn">Save Pricing</button>
+              <div class="form-message" id="pricing-message"></div>
+            </div>
+
+            <div class="card">
+              <h2 class="card-title">Discord Integration</h2>
+              <p class="subtitle">Redeem webhook + the support server link shown to buyers after they redeem.</p>
+              <div class="field">
+                <label for="webhook-url">Redeem Webhook URL</label>
+                <input type="text" id="webhook-url" placeholder="https://discord.com/api/webhooks/...">
+                <div class="hint">Sent an embed (key, boosts, tokens used) on each redeem. Leave empty to disable.</div>
+              </div>
+              <div class="field">
+                <label for="support-url">Support Server Link</label>
+                <input type="text" id="support-url" placeholder="https://discord.gg/...">
+                <div class="hint">Shown as a button on the redeem confirmation page.</div>
+              </div>
+              <button class="btn btn-primary" id="save-webhook-btn">Save</button>
+              <div class="form-message" id="webhook-message"></div>
+            </div>
+
+            <div class="card">
+              <h2 class="card-title">Admin Account</h2>
+              <p class="subtitle">Change the admin login. Saving deletes the old admin account and creates a new one with these credentials.</p>
+              <div class="settings-row">
+                <div class="field" style="max-width:280px">
+                  <label for="admin-new-username">New Username</label>
+                  <input type="text" id="admin-new-username" autocomplete="off" placeholder="admin">
+                </div>
+                <div class="field" style="max-width:280px">
+                  <label for="admin-new-password">New Password</label>
+                  <input type="password" id="admin-new-password" autocomplete="new-password" placeholder="At least 6 characters">
+                </div>
+              </div>
+              <button class="btn btn-primary" id="save-admin-btn">Save Admin Account</button>
+              <div class="form-message" id="admin-message"></div>
+            </div>
+          </div>
+        </div><!-- /#admin-content -->
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <div class="site-watermark">
+    © 2026 Dragon Boosts · Owner: Telegram <a href="https://t.me/nexusreall" target="_blank" rel="noopener">@nexusreall</a> | Discord <a href="https://discord.gg/dragonboost" target="_blank" rel="noopener">discord.gg/dragonboost</a>
+  </div>
+
+  <!-- Humanize card — cloned into the redeem panel and the BYOT booster -->
+  <template id="humanize-tpl">
+    <div class="sec-card hz-card hz-collapsed">
+      <div class="sec-head sec-head-split hz-head" role="button" tabindex="0" aria-expanded="false">
+        <div class="sec-head-left">
+          <span class="sec-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8L19 13M15 9h.01M17.8 6.2L19 5M3 21l9-9M12.2 6.2L11 5"></path></svg></span>
+          <div>
+            <div class="sec-title">HUMANIZE PROFILE</div>
+            <div class="sec-sub">Give each token a real-looking profile right before it boosts</div>
+          </div>
+        </div>
+        <div class="hz-head-right">
+          <label class="hz-switch">
+            <input type="checkbox" class="hz-enabled">
+            <span class="hz-slider"></span>
+          </label>
+          <svg class="hz-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+      </div>
+      <div class="hz-body">
+        <div class="hz-field" data-field="name">
+          <div class="field-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Display name</div>
+          <div class="hz-modes">
+            <button type="button" class="hz-mode active" data-mode="off">Off</button>
+            <button type="button" class="hz-mode" data-mode="random">Random</button>
+            <button type="button" class="hz-mode" data-mode="specific">Specific</button>
+          </div>
+          <input type="text" class="sec-input hz-value" maxlength="32" placeholder="e.g. Alex" hidden="">
+        </div>
+        <div class="hz-field" data-field="bio">
+          <div class="field-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M8 13h8M8 17h5"></path></svg> Bio</div>
+          <div class="hz-modes">
+            <button type="button" class="hz-mode active" data-mode="off">Off</button>
+            <button type="button" class="hz-mode" data-mode="random">Random</button>
+            <button type="button" class="hz-mode" data-mode="specific">Specific</button>
+          </div>
+          <textarea class="sec-input hz-value hz-bio" maxlength="190" rows="2" placeholder="A short line about the account" hidden=""></textarea>
+        </div>
+        <div class="hz-field" data-field="pronouns">
+          <div class="field-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg> Pronouns</div>
+          <div class="hz-modes">
+            <button type="button" class="hz-mode active" data-mode="off">Off</button>
+            <button type="button" class="hz-mode" data-mode="random">Random</button>
+            <button type="button" class="hz-mode" data-mode="specific">Specific</button>
+          </div>
+          <input type="text" class="sec-input hz-value" maxlength="40" placeholder="e.g. they/them" hidden="">
+        </div>
+        <div class="hz-field" data-field="avatar">
+          <div class="field-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 15l-5-5L5 21"></path></svg> Avatar</div>
+          <div class="hz-modes">
+            <button type="button" class="hz-mode active" data-mode="off">Off</button>
+            <button type="button" class="hz-mode" data-mode="random">Random</button>
+            <button type="button" class="hz-mode" data-mode="specific">Specific</button>
+          </div>
+          <div class="hz-avatar" hidden="">
+            <span class="hz-avatar-preview"></span>
+            <div class="hz-avatar-inputs">
+              <input type="text" class="sec-input hz-value" placeholder="https://…/image.png">
+              <label class="buy-pill hz-upload">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5M12 3v12"></path></svg>
+                Upload
+                <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden="">
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="hz-note"></div>
+      </div>
+    </div>
+  </template>
+
+  <script src="app.js"></script>
+
+
+</body></html>
